@@ -1,0 +1,104 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define ROW 5
+#define COL 8
+
+// Structure for queue node (row, col, distance)
+typedef struct {
+    int x, y, dist;
+} Node;
+
+// Queue structure for BFS
+typedef struct {
+    Node nodes[ROW * COL]; // Max size of queue
+    int front, rear;
+} Queue;
+
+// Initialize queue
+void initQueue(Queue *q) {
+    q->front = q->rear = 0;
+}
+
+// Check if queue is empty
+int isEmpty(Queue *q) {
+    return q->front == q->rear;
+}
+
+// Enqueue operation
+void enqueue(Queue *q, int x, int y, int dist) {
+    q->nodes[q->rear].x = x;
+    q->nodes[q->rear].y = y;
+    q->nodes[q->rear].dist = dist;
+    q->rear++;
+}
+
+// Dequeue operation
+Node dequeue(Queue *q) {
+    return q->nodes[q->front++];
+}
+
+// Valid move checker
+int isValid(int x, int y, int grid[ROW][COL], int visited[ROW][COL]) {
+    return (x >= 0 && x < ROW && y >= 0 && y < COL && grid[x][y] == 0 && !visited[x][y]);
+}
+
+// BFS Algorithm for shortest path
+int bfsShortestPath(int grid[ROW][COL], int startX, int startY, int endX, int endY) {
+    // Directions: Up, Down, Left, Right, Diagonals
+    int dx[] = {-1, 1, 0, 0, -1, -1, 1, 1};
+    int dy[] = {0, 0, -1, 1, -1, 1, -1, 1};
+
+    int visited[ROW][COL] = {0};  // Visited nodes
+
+    Queue q;
+    initQueue(&q);
+
+    // Start BFS from the given starting position
+    enqueue(&q, startX, startY, 0);
+    visited[startX][startY] = 1;
+
+    while (!isEmpty(&q)) {
+        Node current = dequeue(&q);
+
+        // Check if we reached the destination
+        if (current.x == endX && current.y == endY)
+            return current.dist;
+
+        // Explore all 8 possible moves
+        for (int i = 0; i < 8; i++) {
+            int newX = current.x + dx[i];
+            int newY = current.y + dy[i];
+
+            if (isValid(newX, newY, grid, visited)) {
+                enqueue(&q, newX, newY, current.dist + 1);
+                visited[newX][newY] = 1;
+            }
+        }
+    }
+
+    return -1; // No path found
+}
+
+int main() {
+    // Example Grid (0 = Free, 1 = Obstacle)
+    int grid[ROW][COL] = {
+        {0, 0, 0, 1, 0, 0, 0, 0},
+        {0, 1, 0, 1, 0, 1, 0, 0},
+        {0, 1, 0, 0, 0, 1, 0, 0},
+        {0, 0, 1, 1, 0, 1, 0, 0},
+        {0, 1, 0, 0, 0, 0, 0, 0}
+    };
+
+    int startX = 0, startY = 0;  // Start Position
+    int endX = 4, endY = 6;      // Destination
+
+    int shortestPath = bfsShortestPath(grid, startX, startY, endX, endY);
+
+    if (shortestPath != -1)
+        printf("Shortest Path Length: %d\n", shortestPath);
+    else
+        printf("No path found!\n");
+
+    return 0;
+}
